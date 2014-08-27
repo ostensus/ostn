@@ -32,7 +32,15 @@ func (s *VersionTestSuite) SetupTest() {
 	ev := NewDatePartitionedEvent(id, version, attributeName, d)
 	err = v.Accept(ev)
 
-	assert.Nil(s.T(), err)
+	assert.NoError(s.T(), err)
+
+	digests, err := v.digest(200)
+	assert.NoError(s.T(), err)
+
+	// $ echo -n "v3" | md5
+	// 43a03299a3c3fed3d8ce7b820f3aca81
+
+	assert.Equal(s.T(), "43a03299a3c3fed3d8ce7b820f3aca81", digests[id])
 }
 
 func (s *VersionTestSuite) TestVersionStoreSync() {

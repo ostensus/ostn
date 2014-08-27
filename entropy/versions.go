@@ -48,11 +48,37 @@ func (v *VersionStore) Accept(ev ChangeEvent) error {
 		if err != nil {
 			return err
 		}
+		defer st.Close()
 		_, err = st.Exec(parted.Id(), parted.Version())
 		return err
 	}
 
 	return errors.New("Bogus event")
+}
+
+func (v *VersionStore) digest(repository int64) (map[string]string, error) {
+	st, err := v.db.Prepare(digest)
+	if err != nil {
+		return nil, err
+	}
+	defer st.Close()
+
+	rows, err := st.Query()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	digests := make(map[string]string)
+
+	for rows.Next() {
+		var id string
+		var digest string
+		rows.Scan(&id, &digest)
+		digests[id] = digest
+	}
+
+	return digests, nil
 }
 
 func (v *VersionStore) Interview(repository int64, cons []Constraint, aggs []Aggregation, answer []Answer) *Iter {
@@ -73,6 +99,15 @@ func (v *VersionStore) Interview(repository int64, cons []Constraint, aggs []Agg
 		return &Iter{err: errors.New("Query not supported")}
 	}
 }
+
+const digest = `
+	SELECT 
+		id, 
+		LOWER(HEX(MD5(GROUP_CONCAT(version,'')))) AS digest
+	FROM x 
+	GROUP BY id 
+	ORDER BY id DESC;"
+`
 
 const create = `
 	CREATE TABLE IF NOT EXISTS x (

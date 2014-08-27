@@ -1,6 +1,8 @@
 ostn
 ----
 
+[![Build Status](https://travis-ci.org/ostensus/ostn.png?branch=master)](https://travis-ci.org/Ostensus/ostn)
+
 `ostn` provides the main Ostensus service.
 
 License

@@ -5,8 +5,8 @@ import (
 	"testing"
 )
 
-func TestEmptyInterview(t *testing.T) {
-	iter := NextQuestion(100)
+func TestInterview(t *testing.T) {
+	iter := Commence(200)
 	assert.Nil(t, iter.err)
 	assert.Nil(t, iter.Next())
 }

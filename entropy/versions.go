@@ -56,7 +56,7 @@ func (v *VersionStore) Accept(ev ChangeEvent) error {
 	return errors.New("Bogus event")
 }
 
-func (v *VersionStore) digest(repository int64) (map[string]string, error) {
+func (v *VersionStore) Digest(repository int64) (map[string]string, error) {
 	st, err := v.db.Prepare(digest)
 	if err != nil {
 		return nil, err

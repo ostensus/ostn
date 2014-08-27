@@ -34,7 +34,7 @@ func (s *VersionTestSuite) SetupTest() {
 
 	assert.NoError(s.T(), err)
 
-	digests, err := v.digest(200)
+	digests, err := v.Digest(200)
 	assert.NoError(s.T(), err)
 
 	// $ echo -n "v3" | md5

@@ -28,6 +28,10 @@ func OpenStore() (*VersionStore, error) {
 		return nil, err
 	}
 
+	if err := Migrate(db); err != nil {
+		return nil, err
+	}
+
 	_, err = db.Exec(create)
 	if err != nil {
 		return nil, err

@@ -13,9 +13,9 @@ type VersionStore struct {
 	db *sql.DB
 }
 
-func OpenStore() (*VersionStore, error) {
+func OpenStore(path string) (*VersionStore, error) {
 
-	db, err := sql.Open("sqlite3", "x.db")
+	db, err := sql.Open("sqlite3", path)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func (v *VersionStore) SliceThreshold() int {
 	return 128
 }
 
-const newRepo = `INSERT OR REPLACE INTO repositories (name) VALUES (?);"`
+const newRepo = `INSERT INTO repositories (name) VALUES (?);"`
 
 func (v *VersionStore) NewRepository(name string) (int64, error) {
 	st, err := v.db.Prepare(newRepo)

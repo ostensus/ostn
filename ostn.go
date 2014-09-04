@@ -10,7 +10,7 @@ import (
 
 func main() {
 
-	vs, err := entropy.OpenStore()
+	vs, err := entropy.OpenStore("y.db")
 	if err != nil {
 		log.Errorf("Could not access version store: %s", err)
 		os.Exit(1)

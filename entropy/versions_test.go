@@ -3,6 +3,7 @@ package entropy
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"os"
 	"testing"
 	"time"
 )
@@ -17,7 +18,9 @@ func TestVersionTestSuite(t *testing.T) {
 }
 
 func (s *VersionTestSuite) SetupTest() {
-	v, err := OpenStore()
+	path := "x.db"
+	os.Remove(path)
+	v, err := OpenStore(path)
 	if err != nil {
 		s.T().Fatalf("Could not open store: %s", err)
 	}
@@ -47,6 +50,9 @@ func (s *VersionTestSuite) TestNewRepository() {
 	id, err := s.store.NewRepository("foo")
 	assert.NoError(s.T(), err)
 	assert.True(s.T(), id > 0)
+
+	id, err = s.store.NewRepository("foo")
+	assert.Error(s.T(), err)
 }
 
 func (s *VersionTestSuite) TestVersionStoreSync() {

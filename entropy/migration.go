@@ -10,7 +10,8 @@ import (
 var s1 = []string{
 	`
 	CREATE TABLE repositories ( 
-        id INTEGER PRIMARY KEY AUTOINCREMENT
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name VARCHAR(100) UNIQUE 
 	);
 	`,
 }

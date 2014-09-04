@@ -44,6 +44,20 @@ func (v *VersionStore) SliceThreshold() int {
 	return 128
 }
 
+const newRepo = `INSERT OR REPLACE INTO repositories (name) VALUES (?);"`
+
+func (v *VersionStore) NewRepository(name string) (int64, error) {
+	st, err := v.db.Prepare(newRepo)
+	if err != nil {
+		return 0, err
+	}
+	res, err := st.Exec(name)
+	if err != nil {
+		return 0, err
+	}
+	return res.LastInsertId()
+}
+
 func (v *VersionStore) Accept(ev ChangeEvent) error {
 
 	parted, ok := ev.(PartitionedEvent)

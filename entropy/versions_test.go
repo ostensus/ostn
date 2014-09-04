@@ -43,6 +43,12 @@ func (s *VersionTestSuite) SetupTest() {
 	assert.Equal(s.T(), "43a03299a3c3fed3d8ce7b820f3aca81", digests[id])
 }
 
+func (s *VersionTestSuite) TestNewRepository() {
+	id, err := s.store.NewRepository("foo")
+	assert.NoError(s.T(), err)
+	assert.True(s.T(), id > 0)
+}
+
 func (s *VersionTestSuite) TestVersionStoreSync() {
 	assert.Equal(s.T(), s.store.SliceThreshold(), 128)
 }

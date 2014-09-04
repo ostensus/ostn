@@ -46,12 +46,21 @@ func (v *VersionStore) SliceThreshold() int {
 
 const newRepo = `INSERT INTO repositories (name) VALUES (?);"`
 
-func (v *VersionStore) NewRepository(name string) (int64, error) {
-	st, err := v.db.Prepare(newRepo)
+func (v *VersionStore) NewRepository(name string, parts map[string]RangePartitionDescriptor) (int64, error) {
+	tx, err := v.db.Begin()
+	if err != nil {
+		return 0, err
+	}
+
+	st, err := tx.Prepare(newRepo)
 	if err != nil {
 		return 0, err
 	}
 	res, err := st.Exec(name)
+	if err != nil {
+		return 0, err
+	}
+	err = tx.Commit()
 	if err != nil {
 		return 0, err
 	}

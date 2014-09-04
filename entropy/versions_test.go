@@ -47,11 +47,14 @@ func (s *VersionTestSuite) SetupTest() {
 }
 
 func (s *VersionTestSuite) TestNewRepository() {
-	id, err := s.store.NewRepository("foo")
+	parts := make(map[string]RangePartitionDescriptor)
+	parts["z"] = RangePartitionDescriptor{}
+
+	id, err := s.store.NewRepository("foo", parts)
 	assert.NoError(s.T(), err)
 	assert.True(s.T(), id > 0)
 
-	id, err = s.store.NewRepository("foo")
+	id, err = s.store.NewRepository("foo", parts)
 	assert.Error(s.T(), err)
 }
 

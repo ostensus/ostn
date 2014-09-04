@@ -9,11 +9,19 @@ import (
 
 var s1 = []string{
 	`
-	CREATE TABLE repositories ( 
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name VARCHAR(100) UNIQUE 
-	);
-	`,
+CREATE TABLE repositories ( 
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name VARCHAR(100) UNIQUE 
+);
+`,
+	`
+CREATE TABLE unique_partition_names ( 
+  repository INTEGER,
+  name VARCHAR(100),
+  PRIMARY KEY(repository, name),
+  FOREIGN KEY(repository) REFERENCES repositories(id)
+);
+`,
 }
 
 var (

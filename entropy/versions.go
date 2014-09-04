@@ -28,6 +28,10 @@ func OpenStore(path string) (*VersionStore, error) {
 		return nil, err
 	}
 
+	if _, err := db.Exec(`PRAGMA foreign_keys = ON;`); err != nil {
+		return nil, err
+	}
+
 	if err := Migrate(db); err != nil {
 		return nil, err
 	}
@@ -45,26 +49,42 @@ func (v *VersionStore) SliceThreshold() int {
 }
 
 const newRepo = `INSERT INTO repositories (name) VALUES (?);"`
+const newPartitionName = `INSERT INTO unique_partition_names (repository, name) VALUES (?, ?);"`
 
-func (v *VersionStore) NewRepository(name string, parts map[string]RangePartitionDescriptor) (int64, error) {
+func (v *VersionStore) NewRepository(name string, parts map[string]RangePartitionDescriptor) (repo int64, err error) {
 	tx, err := v.db.Begin()
 	if err != nil {
-		return 0, err
+		return repo, err
 	}
 
 	st, err := tx.Prepare(newRepo)
 	if err != nil {
-		return 0, err
+		return repo, err
 	}
 	res, err := st.Exec(name)
 	if err != nil {
-		return 0, err
+		return repo, err
 	}
+
+	repo, err = res.LastInsertId()
+	if err != nil {
+		return repo, err
+	}
+
+	st, err = tx.Prepare(newPartitionName)
+	if err != nil {
+		return repo, err
+	}
+	_, err = st.Exec(repo, name)
+	if err != nil {
+		return repo, err
+	}
+
 	err = tx.Commit()
 	if err != nil {
-		return 0, err
+		return repo, err
 	}
-	return res.LastInsertId()
+	return repo, err
 }
 
 func (v *VersionStore) Accept(ev ChangeEvent) error {

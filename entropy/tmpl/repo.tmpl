@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS {{ .Prefix }}_versions (
   version TEXT NOT NULL,
   _tstamp TIMESTAMP DEFAULT(STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')),
   {{ range $name, $desc := .Partitions }}
-    {{ $name }} {{ columnType $desc}},
+    {{ $name }} {{ columnType $desc}} NOT NULL,
   {{ end }}
   PRIMARY KEY(id)
 );

@@ -4,9 +4,12 @@ package entropy
 // #cgo LDFLAGS: -lsqlite3
 import "C"
 import (
+	"bytes"
 	"database/sql"
 	"errors"
+	log "github.com/cihub/seelog"
 	_ "github.com/mattn/go-sqlite3"
+	"text/template"
 )
 
 type VersionStore struct {
@@ -36,6 +39,7 @@ func OpenStore(path string) (*VersionStore, error) {
 		return nil, err
 	}
 
+	// TODO delete this hardcorded create
 	_, err = db.Exec(create)
 	if err != nil {
 		return nil, err
@@ -50,6 +54,7 @@ func (v *VersionStore) SliceThreshold() int {
 
 const newRepo = `INSERT INTO repositories (name) VALUES (?);"`
 const newPartitionName = `INSERT INTO unique_partition_names (repository, name) VALUES (?, ?);"`
+const newRangePartition = `INSERT INTO range_partitions (repository, name) VALUES (?, ?);"`
 
 func (v *VersionStore) NewRepository(name string, parts map[string]RangePartitionDescriptor) (repo int64, err error) {
 	tx, err := v.db.Begin()
@@ -80,11 +85,53 @@ func (v *VersionStore) NewRepository(name string, parts map[string]RangePartitio
 		return repo, err
 	}
 
+	st, err = tx.Prepare(newRangePartition)
+	if err != nil {
+		return repo, err
+	}
+	_, err = st.Exec(repo, name)
+	if err != nil {
+		return repo, err
+	}
+
+	/////////////////////////////////////////////////////////////////
+
+	m := template.FuncMap{
+		"columnType": columnType,
+	}
+
+	t, err := template.New("repo.tmpl").Funcs(m).ParseFiles("tmpl/repo.tmpl")
+	if err != nil {
+		return repo, err
+	}
+
+	params := map[string]interface{}{
+		"Prefix":     name,
+		"Partitions": parts,
+	}
+
+	var b bytes.Buffer
+	t.Execute(&b, params)
+
+	log.Infof("New repo: %s", b.String())
+
+	_, err = tx.Exec(b.String())
+	if err != nil {
+		return repo, err
+	}
+
+	/////////////////////////////////////////////////////////////////
+
 	err = tx.Commit()
 	if err != nil {
 		return repo, err
 	}
+
 	return repo, err
+}
+
+func columnType(d RangePartitionDescriptor) string {
+	return "TIMESTAMP"
 }
 
 func (v *VersionStore) Accept(ev ChangeEvent) error {

@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS {{ .Prefix }}_versions ( 
+  id TEXT,
+  version TEXT NOT NULL,
+  _tstamp TIMESTAMP DEFAULT(STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')),
+  {{ range $name, $desc := .Partitions }}
+    {{ $name }} {{ columnType $desc}},
+  {{ end }}
+  PRIMARY KEY(id)
+);

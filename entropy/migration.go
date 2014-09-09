@@ -22,6 +22,14 @@ CREATE TABLE unique_partition_names (
   FOREIGN KEY(repository) REFERENCES repositories(id)
 );
 `,
+	`
+CREATE TABLE range_partitions ( 
+  repository INTEGER,
+  name VARCHAR(100),
+  PRIMARY KEY(repository, name),
+  FOREIGN KEY(repository, name) REFERENCES unique_partition_names(repository, name)
+);
+`,
 }
 
 var (

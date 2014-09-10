@@ -149,11 +149,26 @@ func columnType(d RangePartitionDescriptor) string {
 
 func (v *VersionStore) Accept(repo int64, ev ChangeEvent) error {
 
+	// TODO validate the repo id
+
 	parted, ok := ev.(PartitionedEvent)
 	if ok {
 
 		parts := make(map[string]RangePartitionDescriptor)
-		// TODO should not need these partitions
+		n := len(parted.Attributes()) + 2
+		args := make([]interface{}, n)
+		i := 0
+		for name, value := range parted.Attributes() {
+			parts[name] = RangePartitionDescriptor{}
+			args[i] = value
+			i++
+		}
+
+		args[n-2] = parted.Id()
+		args[n-1] = parted.Version()
+
+		// TODO need to validate the supplied attributes
+
 		sql := renderSQL(repo, parts, upsertTmpl)
 
 		st, err := v.db.Prepare(sql)
@@ -161,7 +176,7 @@ func (v *VersionStore) Accept(repo int64, ev ChangeEvent) error {
 			return err
 		}
 		defer st.Close()
-		_, err = st.Exec(parted.Id(), parted.Version())
+		_, err = st.Exec(args...)
 		return err
 	}
 

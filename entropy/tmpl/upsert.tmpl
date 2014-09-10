@@ -1,17 +1,37 @@
-INSERT OR REPLACE INTO v_{{ .Postfix }} (id, version, ts)
+INSERT OR REPLACE INTO v_{{ .Postfix }} 
+  (
+    {{ range $name, $desc := .Partitions }}
+      {{ $name }},
+    {{ end }}
+    id,
+    version,
+    _tstamp
+  )
 	SELECT 
-	    new.id, 
-	    new.version, 
+      {{ range $name, $desc := .Partitions }}
+        new.{{ $name }},
+      {{ end }}
+	    new.id,
+	    new.version,
 	    CASE 
 	        WHEN old.version <> new.version 
 	        THEN STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW') 
-	        ELSE COALESCE(old.ts, STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')) 
+	        ELSE COALESCE(old._tstamp, STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')) 
 	    END AS ts
 	FROM ( SELECT
-	     ? AS id,
-	     ? AS version
+          {{ range $name, $desc := .Partitions }}
+            ? AS {{ $name }},
+          {{ end }}
+          ? AS id,
+          ? AS version
 	) AS new
 	LEFT JOIN (
-	    SELECT id, version, ts
-	    FROM x
+	    SELECT
+        {{ range $name, $desc := .Partitions }}
+          {{ $name }},
+        {{ end }}
+        id,
+        version,
+        _tstamp
+	    FROM v_{{ .Postfix }}
 	) AS old ON new.id = old.id;

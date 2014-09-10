@@ -33,29 +33,52 @@ func (s *VersionTestSuite) SetupTest() {
 	d := time.Now()
 
 	ev := NewDatePartitionedEvent(id, version, attributeName, d)
-	err = v.Accept(ev)
+	_ = ev
+	//err = v.Accept(200, ev)
+
+	//assert.NoError(s.T(), err)
+
+	//digests, err := v.Digest(200)
+	//assert.NoError(s.T(), err)
+
+	// $ echo -n "v3" | md5
+	// 43a03299a3c3fed3d8ce7b820f3aca81
+
+	//assert.Equal(s.T(), "43a03299a3c3fed3d8ce7b820f3aca81", digests[id])
+}
+
+func (s *VersionTestSuite) TestNewRepository() {
+
+	attributeName := "ts_col"
+
+	parts := make(map[string]RangePartitionDescriptor)
+	parts[attributeName] = RangePartitionDescriptor{}
+
+	repo, err := s.store.NewRepository("some_repo", parts)
+	assert.NoError(s.T(), err)
+	assert.True(s.T(), repo > 0)
+
+	_, err = s.store.NewRepository("some_repo", parts)
+	assert.Error(s.T(), err)
+
+	id := "foo"
+	version := "v3"
+	d := time.Now()
+
+	ev := NewDatePartitionedEvent(id, version, attributeName, d)
+	err = s.store.Accept(repo, ev)
 
 	assert.NoError(s.T(), err)
 
-	digests, err := v.Digest(200)
+	digests, err := s.store.Digest(repo)
 	assert.NoError(s.T(), err)
 
 	// $ echo -n "v3" | md5
 	// 43a03299a3c3fed3d8ce7b820f3aca81
 
 	assert.Equal(s.T(), "43a03299a3c3fed3d8ce7b820f3aca81", digests[id])
-}
 
-func (s *VersionTestSuite) TestNewRepository() {
-	parts := make(map[string]RangePartitionDescriptor)
-	parts["z"] = RangePartitionDescriptor{}
-
-	id, err := s.store.NewRepository("foo", parts)
-	assert.NoError(s.T(), err)
-	assert.True(s.T(), id > 0)
-
-	id, err = s.store.NewRepository("foo", parts)
-	assert.Error(s.T(), err)
+	//s.store.Accept(ev)
 }
 
 func (s *VersionTestSuite) TestVersionStoreSync() {

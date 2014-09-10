@@ -1,4 +1,6 @@
-CREATE TABLE IF NOT EXISTS {{ .Prefix }}_versions ( 
+{{ $p := .Postfix }}
+
+CREATE TABLE IF NOT EXISTS v_{{ $p }} ( 
   id TEXT,
   version TEXT NOT NULL,
   _tstamp TIMESTAMP DEFAULT(STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')),
@@ -7,3 +9,9 @@ CREATE TABLE IF NOT EXISTS {{ .Prefix }}_versions (
   {{ end }}
   PRIMARY KEY(id)
 );
+
+CREATE INDEX _tstamp_{{ $p }}_idx ON v_{{ $p }}(_tstamp);
+
+{{ range $name, $_ := .Partitions }}
+  CREATE INDEX {{ $name }}_{{ $p }}_idx ON v_{{ $p }}({{ $name }});
+{{ end }}

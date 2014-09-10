@@ -16,6 +16,14 @@ type VersionStore struct {
 	db *sql.DB
 }
 
+var m = template.FuncMap{
+	"columnType": columnType,
+}
+
+var repoTmpl, _ = template.New("repo.tmpl").Funcs(m).ParseFiles("tmpl/repo.tmpl")
+var digestTmpl, _ = template.New("digest.tmpl").ParseFiles("tmpl/digest.tmpl")
+var upsertTmpl, _ = template.New("upsert.tmpl").ParseFiles("tmpl/upsert.tmpl")
+
 func OpenStore(path string) (*VersionStore, error) {
 
 	db, err := sql.Open("sqlite3", path)
@@ -64,59 +72,52 @@ func (v *VersionStore) NewRepository(name string, parts map[string]RangePartitio
 
 	st, err := tx.Prepare(newRepo)
 	if err != nil {
+		tx.Rollback()
 		return repo, err
 	}
 	res, err := st.Exec(name)
 	if err != nil {
+		tx.Rollback()
 		return repo, err
 	}
 
 	repo, err = res.LastInsertId()
 	if err != nil {
+		tx.Rollback()
 		return repo, err
 	}
 
 	st, err = tx.Prepare(newPartitionName)
 	if err != nil {
+		tx.Rollback()
 		return repo, err
 	}
 	_, err = st.Exec(repo, name)
 	if err != nil {
+		tx.Rollback()
 		return repo, err
 	}
 
 	st, err = tx.Prepare(newRangePartition)
 	if err != nil {
+		tx.Rollback()
 		return repo, err
 	}
 	_, err = st.Exec(repo, name)
 	if err != nil {
+		tx.Rollback()
 		return repo, err
 	}
 
 	/////////////////////////////////////////////////////////////////
 
-	m := template.FuncMap{
-		"columnType": columnType,
-	}
+	sql := renderSQL(repo, parts, repoTmpl)
 
-	t, err := template.New("repo.tmpl").Funcs(m).ParseFiles("tmpl/repo.tmpl")
+	log.Infof("New repo: %s", sql)
+
+	_, err = tx.Exec(sql)
 	if err != nil {
-		return repo, err
-	}
-
-	params := map[string]interface{}{
-		"Prefix":     name,
-		"Partitions": parts,
-	}
-
-	var b bytes.Buffer
-	t.Execute(&b, params)
-
-	log.Infof("New repo: %s", b.String())
-
-	_, err = tx.Exec(b.String())
-	if err != nil {
+		tx.Rollback()
 		return repo, err
 	}
 
@@ -130,15 +131,32 @@ func (v *VersionStore) NewRepository(name string, parts map[string]RangePartitio
 	return repo, err
 }
 
+func renderSQL(repo int64, parts map[string]RangePartitionDescriptor, t *template.Template) string {
+	params := map[string]interface{}{
+		"Postfix":    repo,
+		"Partitions": parts,
+	}
+
+	var b bytes.Buffer
+	t.Execute(&b, params)
+
+	return b.String()
+}
+
 func columnType(d RangePartitionDescriptor) string {
 	return "TIMESTAMP"
 }
 
-func (v *VersionStore) Accept(ev ChangeEvent) error {
+func (v *VersionStore) Accept(repo int64, ev ChangeEvent) error {
 
 	parted, ok := ev.(PartitionedEvent)
 	if ok {
-		st, err := v.db.Prepare(upsert)
+
+		parts := make(map[string]RangePartitionDescriptor)
+		// TODO should not need these partitions
+		sql := renderSQL(repo, parts, upsertTmpl)
+
+		st, err := v.db.Prepare(sql)
 		if err != nil {
 			return err
 		}
@@ -150,8 +168,21 @@ func (v *VersionStore) Accept(ev ChangeEvent) error {
 	return errors.New("Bogus event")
 }
 
-func (v *VersionStore) Digest(repository int64) (map[string]string, error) {
-	st, err := v.db.Prepare(digest)
+func (v *VersionStore) Digest(repo int64) (map[string]string, error) {
+
+	var partitionAttribute string
+	err := v.db.QueryRow("SELECT name FROM range_partitions WHERE repository = ? LIMIT 1", repo).Scan(&partitionAttribute)
+	if err != nil {
+		return nil, err
+	}
+
+	parts := make(map[string]RangePartitionDescriptor)
+	parts[partitionAttribute] = RangePartitionDescriptor{}
+
+	sql := renderSQL(repo, parts, digestTmpl)
+	log.Infof("Query: %s", sql)
+
+	st, err := v.db.Prepare(sql)
 	if err != nil {
 		return nil, err
 	}

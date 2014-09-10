@@ -22,7 +22,7 @@ func main() {
 
 		ev := entropy.NewDatePartitionedEvent("id", params["version"], "ts", time.Now())
 
-		if err := vs.Accept(ev); err != nil {
+		if err := vs.Accept(200, ev); err != nil {
 			return 400, "Bad event"
 		}
 

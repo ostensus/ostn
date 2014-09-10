@@ -1,0 +1,17 @@
+INSERT OR REPLACE INTO v_{{ .Postfix }} (id, version, ts)
+	SELECT 
+	    new.id, 
+	    new.version, 
+	    CASE 
+	        WHEN old.version <> new.version 
+	        THEN STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW') 
+	        ELSE COALESCE(old.ts, STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')) 
+	    END AS ts
+	FROM ( SELECT
+	     ? AS id,
+	     ? AS version
+	) AS new
+	LEFT JOIN (
+	    SELECT id, version, ts
+	    FROM x
+	) AS old ON new.id = old.id;

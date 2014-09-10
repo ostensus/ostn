@@ -16,13 +16,22 @@ type VersionStore struct {
 	db *sql.DB
 }
 
-var m = template.FuncMap{
-	"columnType": columnType,
-}
+var repoTmpl, digestTmpl, upsertTmpl *template.Template
 
-var repoTmpl, _ = template.New("repo.tmpl").Funcs(m).ParseFiles("tmpl/repo.tmpl")
-var digestTmpl, _ = template.New("digest.tmpl").ParseFiles("tmpl/digest.tmpl")
-var upsertTmpl, _ = template.New("upsert.tmpl").ParseFiles("tmpl/upsert.tmpl")
+func init() {
+	m := template.FuncMap{
+		"columnType": columnType,
+	}
+
+	repoBin, _ := repo_tmpl()
+	repoTmpl = template.Must(template.New("repo.tmpl").Funcs(m).Parse(string(repoBin)))
+
+	digestBin, _ := digest_tmpl()
+	digestTmpl = template.Must(template.New("digest.tmpl").Funcs(m).Parse(string(digestBin)))
+
+	upsertBin, _ := upsert_tmpl()
+	upsertTmpl = template.Must(template.New("upsert.tmpl").Funcs(m).Parse(string(upsertBin)))
+}
 
 func OpenStore(path string) (*VersionStore, error) {
 

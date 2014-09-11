@@ -1,0 +1,29 @@
+{
+	"ImportPath": "github.com/ostensus/ostn",
+	"GoVersion": "go1.3",
+	"Deps": [
+		{
+			"ImportPath": "github.com/cihub/seelog",
+			"Comment": "go1.1-24-g83d0dca",
+			"Rev": "83d0dcad636b63c066856045962befa246e00c79"
+		},
+		{
+			"ImportPath": "github.com/codegangsta/inject",
+			"Comment": "v1.0-rc1-4-g4b81725",
+			"Rev": "4b8172520a03fa190f427bbd284db01b459bfce7"
+		},
+		{
+			"ImportPath": "github.com/go-martini/martini",
+			"Comment": "v1.0-43-gb300a46",
+			"Rev": "b300a46f7f3ada7b9cfc01a2c7354605a679d924"
+		},
+		{
+			"ImportPath": "github.com/martini-contrib/binding",
+			"Rev": "1928ed2850e7d65507ea4198d935597e43612c7d"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-sqlite3",
+			"Rev": "abd3d9caef4548682a279b60c859c197a1b32a47"
+		}
+	]
+}

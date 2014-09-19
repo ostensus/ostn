@@ -69,11 +69,12 @@ func (v *VersionStore) SliceThreshold() int {
 	return 128
 }
 
-const newRepo = `INSERT INTO repositories (name) VALUES (?);"`
+const newRepo = `INSERT INTO repositories (source, name) VALUES (?, ?);"`
 const newPartitionName = `INSERT INTO unique_partition_names (repository, name) VALUES (?, ?);"`
 const newRangePartition = `INSERT INTO range_partitions (repository, name) VALUES (?, ?);"`
+const newSetPartition = `INSERT INTO set_partitions (repository, name, value) VALUES (?, ?, ?);"`
 
-func (v *VersionStore) NewRepository(name string, parts map[string]RangePartitionDescriptor) (repo int64, err error) {
+func (v *VersionStore) NewRepository(src, repoName string, parts map[string]PartitionDescriptor) (repo int64, err error) {
 	tx, err := v.db.Begin()
 	if err != nil {
 		return repo, err
@@ -84,7 +85,7 @@ func (v *VersionStore) NewRepository(name string, parts map[string]RangePartitio
 		tx.Rollback()
 		return repo, err
 	}
-	res, err := st.Exec(name)
+	res, err := st.Exec(src, repoName)
 	if err != nil {
 		tx.Rollback()
 		return repo, err
@@ -96,33 +97,58 @@ func (v *VersionStore) NewRepository(name string, parts map[string]RangePartitio
 		return repo, err
 	}
 
-	st, err = tx.Prepare(newPartitionName)
-	if err != nil {
-		tx.Rollback()
-		return repo, err
-	}
-	_, err = st.Exec(repo, name)
-	if err != nil {
-		tx.Rollback()
-		return repo, err
-	}
+	for name, desc := range parts {
 
-	st, err = tx.Prepare(newRangePartition)
-	if err != nil {
-		tx.Rollback()
-		return repo, err
-	}
-	_, err = st.Exec(repo, name)
-	if err != nil {
-		tx.Rollback()
-		return repo, err
+		st, err = tx.Prepare(newPartitionName)
+		if err != nil {
+			tx.Rollback()
+			return repo, err
+		}
+		_, err = st.Exec(repo, name)
+		if err != nil {
+			tx.Rollback()
+			return repo, err
+		}
+
+		switch d := desc.(type) {
+		case *SetPartitionDescriptor:
+
+			for _, value := range d.Values {
+				st, err = tx.Prepare(newSetPartition)
+				if err != nil {
+					tx.Rollback()
+					return repo, err
+				}
+				_, err = st.Exec(repo, name, value)
+				if err != nil {
+					tx.Rollback()
+					return repo, err
+				}
+			}
+
+		case *RangePartitionDescriptor:
+
+			_ = d.DataType
+
+			st, err = tx.Prepare(newRangePartition)
+			if err != nil {
+				tx.Rollback()
+				return repo, err
+			}
+			_, err = st.Exec(repo, name)
+			if err != nil {
+				tx.Rollback()
+				return repo, err
+			}
+		}
+
 	}
 
 	/////////////////////////////////////////////////////////////////
 
 	sql := renderSQL(repo, parts, repoTmpl)
 
-	log.Infof("New repo: %s", sql)
+	log.Infof("New repo: \n\n____________\n%s\n____________\n", sql)
 
 	_, err = tx.Exec(sql)
 	if err != nil {
@@ -140,7 +166,7 @@ func (v *VersionStore) NewRepository(name string, parts map[string]RangePartitio
 	return repo, err
 }
 
-func renderSQL(repo int64, parts map[string]RangePartitionDescriptor, t *template.Template) string {
+func renderSQL(repo int64, parts map[string]PartitionDescriptor, t *template.Template) string {
 	params := map[string]interface{}{
 		"Postfix":    repo,
 		"Partitions": parts,
@@ -152,8 +178,13 @@ func renderSQL(repo int64, parts map[string]RangePartitionDescriptor, t *templat
 	return b.String()
 }
 
-func columnType(d RangePartitionDescriptor) string {
-	return "TIMESTAMP"
+func columnType(d PartitionDescriptor) string {
+	switch d.(type) {
+	case *RangePartitionDescriptor:
+		return "TIMESTAMP"
+	default:
+		return "TEXT"
+	}
 }
 
 func (v *VersionStore) Accept(repo int64, ev ChangeEvent) error {
@@ -163,12 +194,12 @@ func (v *VersionStore) Accept(repo int64, ev ChangeEvent) error {
 	parted, ok := ev.(PartitionedEvent)
 	if ok {
 
-		parts := make(map[string]RangePartitionDescriptor)
+		parts := make(map[string]PartitionDescriptor)
 		n := len(parted.Attributes()) + 2
 		args := make([]interface{}, n)
 		i := 0
 		for name, value := range parted.Attributes() {
-			parts[name] = RangePartitionDescriptor{}
+			parts[name] = &RangePartitionDescriptor{}
 			args[i] = value
 			i++
 		}
@@ -200,8 +231,8 @@ func (v *VersionStore) Digest(repo int64) (map[string]string, error) {
 		return nil, err
 	}
 
-	parts := make(map[string]RangePartitionDescriptor)
-	parts[partitionAttribute] = RangePartitionDescriptor{}
+	parts := make(map[string]PartitionDescriptor)
+	parts[partitionAttribute] = &RangePartitionDescriptor{}
 
 	sql := renderSQL(repo, parts, digestTmpl)
 	log.Infof("Query: %s", sql)

@@ -24,7 +24,8 @@ func main() {
 	m := martini.Classic()
 
 	type RepoForm struct {
-		Name string `form:"name" binding:"required"`
+		Source string `form:"source" binding:"required"`
+		Name   string `form:"name" binding:"required"`
 	}
 
 	type ChangeEventForm struct {
@@ -32,12 +33,20 @@ func main() {
 		Version string `form:"version" binding:"required"`
 	}
 
-	m.Post("/repos", binding.Bind(RepoForm{}), func(repo RepoForm) (int, string) {
+	m.Get("/ostensus/:connector/question/:repo", func(params martini.Params) (int, string) {
+		return 200, "digest"
+	})
 
-		parts := make(map[string]entropy.RangePartitionDescriptor)
-		parts[attributeName] = entropy.RangePartitionDescriptor{}
+	m.Get("/:connector/question/:repo", func(params martini.Params) (int, string) {
+		return 200, "digest"
+	})
 
-		id, err := vs.NewRepository(repo.Name, parts)
+	m.Post("/repos", binding.Bind(RepoForm{}), func(r RepoForm) (int, string) {
+
+		parts := make(map[string]entropy.PartitionDescriptor)
+		parts[attributeName] = &entropy.RangePartitionDescriptor{}
+
+		id, err := vs.NewRepository(r.Source, r.Name, parts)
 		if err != nil {
 			return 500, err.Error()
 		}

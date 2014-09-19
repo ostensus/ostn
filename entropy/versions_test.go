@@ -31,21 +31,25 @@ func (s *VersionTestSuite) TestNewRepository() {
 
 	attributeName := "ts_col"
 
-	parts := make(map[string]RangePartitionDescriptor)
-	parts[attributeName] = RangePartitionDescriptor{}
+	parts := make(map[string]PartitionDescriptor)
+	parts[attributeName] = &RangePartitionDescriptor{}
+	parts["x"] = &SetPartitionDescriptor{Values: []string{"y"}}
 
-	repo, err := s.store.NewRepository("some_repo", parts)
+	repo, err := s.store.NewRepository("some_src", "some_repo", parts)
 	assert.NoError(s.T(), err)
 	assert.True(s.T(), repo > 0)
 
-	_, err = s.store.NewRepository("some_repo", parts)
+	_, err = s.store.NewRepository("some_src", "some_repo", parts)
 	assert.Error(s.T(), err)
 
 	id := "foo"
 	version := "v3"
-	d := time.Now()
 
-	ev := NewDatePartitionedEvent(id, version, attributeName, d)
+	atts := make(map[string]interface{})
+	atts[attributeName] = time.Now()
+	atts["x"] = "y"
+
+	ev := NewPartitionedEvent(id, version, atts)
 	err = s.store.Accept(repo, ev)
 
 	assert.NoError(s.T(), err)

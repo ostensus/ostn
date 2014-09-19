@@ -75,6 +75,28 @@ const (
 	dayFormat   = "02"
 )
 
+func NewPartitionedEvent(id, version string, attributes map[string]interface{}) PartitionedEvent {
+	atts := make(map[string]string)
+
+	for name, value := range attributes {
+		switch v := value.(type) {
+		case time.Time:
+			atts[name] = v.Format(dateFormat)
+		case string:
+			atts[name] = v
+		}
+	}
+
+	ev := &basePartitionedEvent{}
+	ev.attributes = atts
+	ev.id = id
+	ev.version = version
+	ev.idHierarchy = BuildEntityNode(id, version)
+	//ev.attributeHierarchy = BuildDateTimeNode(id, version, d)
+
+	return ev
+}
+
 func NewDatePartitionedEvent(id, version, attributeName string, d time.Time) PartitionedEvent {
 
 	atts := make(map[string]string)

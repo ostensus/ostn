@@ -234,7 +234,7 @@ func (v *VersionStore) Digest(repo int64) (map[string]string, error) {
 
 	q := sqlc.Select(UNIQUE_PARTITION_NAMES.NAME).
 		From(UNIQUE_PARTITION_NAMES).
-		Join(RANGE_PARTITIONS).
+		LeftOuterJoin(RANGE_PARTITIONS).
 		On(UNIQUE_PARTITION_NAMES.NAME.IsEq(RANGE_PARTITIONS.NAME))
 
 	s := q.String(v.dialect)

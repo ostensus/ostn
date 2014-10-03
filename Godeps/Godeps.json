@@ -3,6 +3,10 @@
 	"GoVersion": "go1.3",
 	"Deps": [
 		{
+			"ImportPath": "github.com/0x6e6562/gosnow",
+			"Rev": "684868a9eb49ac90900a5c5d419c0606b3b30d01"
+		},
+		{
 			"ImportPath": "github.com/cihub/seelog",
 			"Comment": "go1.1-24-g83d0dca",
 			"Rev": "83d0dcad636b63c066856045962befa246e00c79"
@@ -24,6 +28,10 @@
 		{
 			"ImportPath": "github.com/mattn/go-sqlite3",
 			"Rev": "abd3d9caef4548682a279b60c859c197a1b32a47"
+		},
+		{
+			"ImportPath": "github.com/relops/sqlc/sqlc",
+			"Rev": "8630e2bae0769a8a6274b72161c86652d034f916"
 		}
 	]
 }

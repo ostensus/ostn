@@ -18,7 +18,7 @@ func TestVersionTestSuite(t *testing.T) {
 }
 
 func (s *VersionTestSuite) SetupTest() {
-	path := "x.db"
+	path := "versions.db"
 	os.Remove(path)
 	v, err := OpenStore(path)
 	if err != nil {

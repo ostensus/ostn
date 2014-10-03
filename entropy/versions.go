@@ -9,6 +9,8 @@ import (
 	"errors"
 	log "github.com/cihub/seelog"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/ostensus/ostn/entropy/migration"
+	"github.com/relops/sqlc/sqlc"
 	"text/template"
 )
 
@@ -52,7 +54,8 @@ func OpenStore(path string) (*VersionStore, error) {
 		return nil, err
 	}
 
-	if err := Migrate(db); err != nil {
+	steps := sqlc.LoadBindata(migration.AssetNames(), migration.Asset)
+	if err = sqlc.Migrate(db, sqlc.Sqlite, steps); err != nil {
 		return nil, err
 	}
 
@@ -225,16 +228,31 @@ func (v *VersionStore) Accept(repo int64, ev ChangeEvent) error {
 
 func (v *VersionStore) Digest(repo int64) (map[string]string, error) {
 
-	var partitionAttribute string
-	err := v.db.QueryRow("SELECT name FROM range_partitions WHERE repository = ? LIMIT 1", repo).Scan(&partitionAttribute)
+	parts := make(map[string]PartitionDescriptor)
+
+	//sqlc.Select(...)
+
+	rows, err := v.db.Query(metadata, repo)
+
 	if err != nil {
 		return nil, err
 	}
 
-	parts := make(map[string]PartitionDescriptor)
-	parts[partitionAttribute] = &RangePartitionDescriptor{}
+	for rows.Next() {
+		var name, value string
+		_ = rows.Scan(&name, &value)
+
+		log.Infof("Name(%s) -> Value(%s)", name, value)
+
+		if value == "" {
+			parts[name] = &RangePartitionDescriptor{}
+		} else {
+			parts[name] = &SetPartitionDescriptor{Values: []string{value}}
+		}
+	}
 
 	sql := renderSQL(repo, parts, digestTmpl)
+	log.Infof("Parts: %+v", parts)
 	log.Infof("Query: %s", sql)
 
 	st, err := v.db.Prepare(sql)
@@ -243,7 +261,7 @@ func (v *VersionStore) Digest(repo int64) (map[string]string, error) {
 	}
 	defer st.Close()
 
-	rows, err := st.Query()
+	rows, err = st.Query()
 	if err != nil {
 		return nil, err
 	}
@@ -280,13 +298,12 @@ func (v *VersionStore) Interview(repository int64, cons []Constraint, aggs []Agg
 	}
 }
 
-const digest = `
-	SELECT 
-		id, 
-		LOWER(HEX(MD5(GROUP_CONCAT(version,'')))) AS digest
-	FROM x 
-	GROUP BY id 
-	ORDER BY id DESC;"
+const metadata = `
+	SELECT u.name, s.value
+	FROM unique_partition_names u
+	LEFT OUTER JOIN range_partitions r ON u.repository = r.repository AND u.name = r.name
+	LEFT OUTER JOIN set_partitions s ON u.repository = s.repository AND u.name = s.name
+	WHERE u.repository = ?;
 `
 
 const create = `

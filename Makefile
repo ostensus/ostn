@@ -16,4 +16,4 @@ entropy/migration/steps.go: entropy/migration $(MIGRATION_SCRIPTS)
 	go-bindata -pkg=migration -o=$@ entropy/db
 
 entropy/versions.db: entropy/migration/steps.go
-	go run entropy/migrate_db.go
+	go run entropy/migrate.go

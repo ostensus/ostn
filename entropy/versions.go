@@ -15,7 +15,8 @@ import (
 )
 
 type VersionStore struct {
-	db *sql.DB
+	db      *sql.DB
+	dialect sqlc.Dialect
 }
 
 var repoTmpl, digestTmpl, upsertTmpl *template.Template
@@ -43,7 +44,8 @@ func OpenStore(path string) (*VersionStore, error) {
 	}
 
 	v := &VersionStore{
-		db: db,
+		db:      db,
+		dialect: sqlc.Sqlite,
 	}
 
 	if err := autoload(); err != nil {
@@ -230,7 +232,13 @@ func (v *VersionStore) Digest(repo int64) (map[string]string, error) {
 
 	parts := make(map[string]PartitionDescriptor)
 
-	//sqlc.Select(...)
+	q := sqlc.Select(UNIQUE_PARTITION_NAMES.NAME).
+		From(UNIQUE_PARTITION_NAMES).
+		Join(RANGE_PARTITIONS).
+		On(UNIQUE_PARTITION_NAMES.NAME.IsEq(RANGE_PARTITIONS.NAME))
+
+	s := q.String(v.dialect)
+	log.Infof("SQL: %s", s)
 
 	rows, err := v.db.Query(metadata, repo)
 

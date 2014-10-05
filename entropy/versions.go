@@ -232,15 +232,16 @@ func (v *VersionStore) Digest(repo int64) (map[string]string, error) {
 
 	parts := make(map[string]PartitionDescriptor)
 
-	q := sqlc.Select(UNIQUE_PARTITION_NAMES.NAME).
+	rows, err := sqlc.Select(UNIQUE_PARTITION_NAMES.NAME, SET_PARTITIONS.VALUE).
 		From(UNIQUE_PARTITION_NAMES).
 		LeftOuterJoin(RANGE_PARTITIONS).
-		On(UNIQUE_PARTITION_NAMES.NAME.IsEq(RANGE_PARTITIONS.NAME))
-
-	s := q.String(v.dialect)
-	log.Infof("SQL: %s", s)
-
-	rows, err := v.db.Query(metadata, repo)
+		On(UNIQUE_PARTITION_NAMES.NAME.IsEq(RANGE_PARTITIONS.NAME),
+		UNIQUE_PARTITION_NAMES.REPOSITORY.IsEq(RANGE_PARTITIONS.REPOSITORY)).
+		LeftOuterJoin(SET_PARTITIONS).
+		On(UNIQUE_PARTITION_NAMES.NAME.IsEq(SET_PARTITIONS.NAME),
+		UNIQUE_PARTITION_NAMES.REPOSITORY.IsEq(SET_PARTITIONS.REPOSITORY)).
+		Where(UNIQUE_PARTITION_NAMES.REPOSITORY.Eq(repo)).
+		Query(v.dialect, v.db)
 
 	if err != nil {
 		return nil, err

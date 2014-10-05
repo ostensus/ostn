@@ -9,7 +9,7 @@ import (
 
 type repositories struct {
 	
-	ID sqlc.IntField
+	ID sqlc.Int64Field
 	
 	SOURCE sqlc.StringField
 	
@@ -26,7 +26,7 @@ func (t *repositories) Name() string {
 func (t *repositories) Fields() []sqlc.Field {
 	return []sqlc.Field{
 		
-		sqlc.Int(REPOSITORIES, "ID"),
+		sqlc.Int64(REPOSITORIES, "ID"),
 		
 		sqlc.String(REPOSITORIES, "SOURCE"),
 		
@@ -39,7 +39,7 @@ func (t *repositories) Fields() []sqlc.Field {
 
 type unique_partition_names struct {
 	
-	REPOSITORY sqlc.IntField
+	REPOSITORY sqlc.Int64Field
 	
 	NAME sqlc.StringField
 	
@@ -54,7 +54,7 @@ func (t *unique_partition_names) Name() string {
 func (t *unique_partition_names) Fields() []sqlc.Field {
 	return []sqlc.Field{
 		
-		sqlc.Int(UNIQUE_PARTITION_NAMES, "REPOSITORY"),
+		sqlc.Int64(UNIQUE_PARTITION_NAMES, "REPOSITORY"),
 		
 		sqlc.String(UNIQUE_PARTITION_NAMES, "NAME"),
 		
@@ -65,7 +65,7 @@ func (t *unique_partition_names) Fields() []sqlc.Field {
 
 type range_partitions struct {
 	
-	REPOSITORY sqlc.IntField
+	REPOSITORY sqlc.Int64Field
 	
 	NAME sqlc.StringField
 	
@@ -80,7 +80,7 @@ func (t *range_partitions) Name() string {
 func (t *range_partitions) Fields() []sqlc.Field {
 	return []sqlc.Field{
 		
-		sqlc.Int(RANGE_PARTITIONS, "REPOSITORY"),
+		sqlc.Int64(RANGE_PARTITIONS, "REPOSITORY"),
 		
 		sqlc.String(RANGE_PARTITIONS, "NAME"),
 		
@@ -91,7 +91,7 @@ func (t *range_partitions) Fields() []sqlc.Field {
 
 type set_partitions struct {
 	
-	REPOSITORY sqlc.IntField
+	REPOSITORY sqlc.Int64Field
 	
 	NAME sqlc.StringField
 	
@@ -108,7 +108,7 @@ func (t *set_partitions) Name() string {
 func (t *set_partitions) Fields() []sqlc.Field {
 	return []sqlc.Field{
 		
-		sqlc.Int(SET_PARTITIONS, "REPOSITORY"),
+		sqlc.Int64(SET_PARTITIONS, "REPOSITORY"),
 		
 		sqlc.String(SET_PARTITIONS, "NAME"),
 		
@@ -192,7 +192,7 @@ var __repositories = &repositories{}
 var REPOSITORIES = &repositories {
 	
 
-	ID: sqlc.Int(__repositories, "ID"),
+	ID: sqlc.Int64(__repositories, "ID"),
 
 	SOURCE: sqlc.String(__repositories, "SOURCE"),
 
@@ -207,7 +207,7 @@ var __unique_partition_names = &unique_partition_names{}
 var UNIQUE_PARTITION_NAMES = &unique_partition_names {
 	
 
-	REPOSITORY: sqlc.Int(__unique_partition_names, "REPOSITORY"),
+	REPOSITORY: sqlc.Int64(__unique_partition_names, "REPOSITORY"),
 
 	NAME: sqlc.String(__unique_partition_names, "NAME"),
 
@@ -220,7 +220,7 @@ var __range_partitions = &range_partitions{}
 var RANGE_PARTITIONS = &range_partitions {
 	
 
-	REPOSITORY: sqlc.Int(__range_partitions, "REPOSITORY"),
+	REPOSITORY: sqlc.Int64(__range_partitions, "REPOSITORY"),
 
 	NAME: sqlc.String(__range_partitions, "NAME"),
 
@@ -233,7 +233,7 @@ var __set_partitions = &set_partitions{}
 var SET_PARTITIONS = &set_partitions {
 	
 
-	REPOSITORY: sqlc.Int(__set_partitions, "REPOSITORY"),
+	REPOSITORY: sqlc.Int64(__set_partitions, "REPOSITORY"),
 
 	NAME: sqlc.String(__set_partitions, "NAME"),
 

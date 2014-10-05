@@ -307,14 +307,6 @@ func (v *VersionStore) Interview(repository int64, cons []Constraint, aggs []Agg
 	}
 }
 
-const metadata = `
-	SELECT u.name, s.value
-	FROM unique_partition_names u
-	LEFT OUTER JOIN range_partitions r ON u.repository = r.repository AND u.name = r.name
-	LEFT OUTER JOIN set_partitions s ON u.repository = s.repository AND u.name = s.name
-	WHERE u.repository = ?;
-`
-
 const create = `
 	CREATE TABLE IF NOT EXISTS x (
 		id INT PRIMARY KEY,

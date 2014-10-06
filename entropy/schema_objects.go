@@ -15,12 +15,22 @@ type repositories struct {
 	
 	NAME sqlc.StringField
 	
+	alias string
 }
 
 func (t *repositories) IsSelectable() {}
 
 func (t *repositories) Name() string {
 	return "repositories"
+}
+
+func (t *repositories) As(a string) sqlc.Selectable {
+	t.alias = a
+	return t
+}
+
+func (t *repositories) Alias() string {
+	return t.alias
 }
 
 func (t *repositories) Fields() []sqlc.Field {
@@ -43,12 +53,22 @@ type unique_partition_names struct {
 	
 	NAME sqlc.StringField
 	
+	alias string
 }
 
 func (t *unique_partition_names) IsSelectable() {}
 
 func (t *unique_partition_names) Name() string {
 	return "unique_partition_names"
+}
+
+func (t *unique_partition_names) As(a string) sqlc.Selectable {
+	t.alias = a
+	return t
+}
+
+func (t *unique_partition_names) Alias() string {
+	return t.alias
 }
 
 func (t *unique_partition_names) Fields() []sqlc.Field {
@@ -69,12 +89,22 @@ type range_partitions struct {
 	
 	NAME sqlc.StringField
 	
+	alias string
 }
 
 func (t *range_partitions) IsSelectable() {}
 
 func (t *range_partitions) Name() string {
 	return "range_partitions"
+}
+
+func (t *range_partitions) As(a string) sqlc.Selectable {
+	t.alias = a
+	return t
+}
+
+func (t *range_partitions) Alias() string {
+	return t.alias
 }
 
 func (t *range_partitions) Fields() []sqlc.Field {
@@ -97,12 +127,22 @@ type set_partitions struct {
 	
 	VALUE sqlc.StringField
 	
+	alias string
 }
 
 func (t *set_partitions) IsSelectable() {}
 
 func (t *set_partitions) Name() string {
 	return "set_partitions"
+}
+
+func (t *set_partitions) As(a string) sqlc.Selectable {
+	t.alias = a
+	return t
+}
+
+func (t *set_partitions) Alias() string {
+	return t.alias
 }
 
 func (t *set_partitions) Fields() []sqlc.Field {
@@ -127,12 +167,22 @@ type x struct {
 	
 	TS sqlc.TimeField
 	
+	alias string
 }
 
 func (t *x) IsSelectable() {}
 
 func (t *x) Name() string {
 	return "x"
+}
+
+func (t *x) As(a string) sqlc.Selectable {
+	t.alias = a
+	return t
+}
+
+func (t *x) Alias() string {
+	return t.alias
 }
 
 func (t *x) Fields() []sqlc.Field {
@@ -161,12 +211,22 @@ type v_1 struct {
 	
 	X sqlc.StringField
 	
+	alias string
 }
 
 func (t *v_1) IsSelectable() {}
 
 func (t *v_1) Name() string {
 	return "v_1"
+}
+
+func (t *v_1) As(a string) sqlc.Selectable {
+	t.alias = a
+	return t
+}
+
+func (t *v_1) Alias() string {
+	return t.alias
 }
 
 func (t *v_1) Fields() []sqlc.Field {

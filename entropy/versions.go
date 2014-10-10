@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"database/sql"
 	"errors"
+	"fmt"
 	log "github.com/cihub/seelog"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/ostensus/ostn/entropy/migration"
@@ -258,6 +259,26 @@ func (v *VersionStore) Digest(repo int64) (map[string]string, error) {
 		} else {
 			parts[name] = &SetPartitionDescriptor{Values: []string{value}}
 		}
+	}
+
+	// v_ID
+	tableName := fmt.Sprintf("v_%d", repo)
+	t := sqlc.Table(tableName)
+
+	lhs := t.As("lhs")
+	rhs := t.As("rhs")
+
+	lhsIdField := lhs.StringField("id")
+	rhsIdField := rhs.StringField("id")
+
+	q := sqlc.Select().From(lhs).Join(rhs).On(lhsIdField.IsEq(rhsIdField))
+
+	s := q.String(v.dialect)
+	log.Infof("Digest %s", s)
+
+	_, err = q.Query(v.dialect, v.db)
+	if err != nil {
+		return nil, err
 	}
 
 	sql := renderSQL(repo, parts, digestTmpl)

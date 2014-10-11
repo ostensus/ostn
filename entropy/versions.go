@@ -271,7 +271,7 @@ func (v *VersionStore) Digest(repo int64) (map[string]string, error) {
 	lhsIdField := lhs.StringField("id")
 	rhsIdField := rhs.StringField("id")
 
-	q := sqlc.Select().From(lhs).Join(rhs).On(lhsIdField.IsEq(rhsIdField))
+	q := sqlc.Select().From(lhs).Join(rhs).On(lhsIdField.IsGe(rhsIdField))
 
 	s := q.String(v.dialect)
 	log.Infof("Digest %s", s)

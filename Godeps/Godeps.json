@@ -31,7 +31,7 @@
 		},
 		{
 			"ImportPath": "github.com/relops/sqlc/sqlc",
-			"Rev": "ab2e3880d80f62ae94d49ce634ac161fc4f36513"
+			"Rev": "8445a640055f9335caf418c24effa2a44921098b"
 		}
 	]
 }

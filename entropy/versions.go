@@ -271,7 +271,15 @@ func (v *VersionStore) Digest(repo int64) (map[string]string, error) {
 	lhsIdField := lhs.StringField("id")
 	rhsIdField := rhs.StringField("id")
 
-	q := sqlc.Select().From(lhs).Join(rhs).On(lhsIdField.IsGe(rhsIdField))
+	lhsVersion := lhs.StringField("version").As("version")
+
+	sliceThreshold := 127
+	bucket := sqlc.Count().Cast("REAL").Div(sliceThreshold).Cast("INT").As("bucket")
+
+	q := sqlc.Select(lhsIdField.As("id"), lhsVersion, bucket).
+		From(lhs).
+		Join(rhs).On(lhsIdField.IsGe(rhsIdField)).
+		GroupBy(lhsIdField)
 
 	s := q.String(v.dialect)
 	log.Infof("Digest %s", s)

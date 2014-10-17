@@ -389,96 +389,6 @@ func (t *x) Fields() []sqlc.Field {
 
 
 
-type v_1 struct {
-	
-	ID sqlc.StringField
-	
-	VERSION sqlc.StringField
-	
-	_TSTAMP sqlc.TimeField
-	
-	TS_COL sqlc.TimeField
-	
-	X sqlc.StringField
-	
-	alias string
-}
-
-func (t *v_1) IsSelectable() {}
-
-func (t *v_1) Name() string {
-	return "v_1"
-}
-
-func (t *v_1) As(a string) sqlc.Selectable {
-	return &v_1{
-		
-		ID: t.ID,
-		
-		VERSION: t.VERSION,
-		
-		_TSTAMP: t._TSTAMP,
-		
-		TS_COL: t.TS_COL,
-		
-		X: t.X,
-		
-		alias:a,
-	}
-}
-
-func (t *v_1) Alias() string {
-	return t.alias
-}
-
-func (t *v_1) MaybeAlias() string {
-	if t.alias == "" {
-		return "v_1"
-	} else {
-		return t.alias
-	}
-}
-
-/////
-
-
-func (t *v_1) StringField(name string) sqlc.StringField {
-	return sqlc.String(V_1, strings.ToUpper(name))
-}
-
-func (t *v_1) IntField(name string) sqlc.IntField {
-	return sqlc.Int(V_1, strings.ToUpper(name))
-}
-
-func (t *v_1) Int64Field(name string) sqlc.Int64Field {
-	return sqlc.Int64(V_1, strings.ToUpper(name))
-}
-
-func (t *v_1) TimeField(name string) sqlc.TimeField {
-	return sqlc.Time(V_1, strings.ToUpper(name))
-}
-
-
-/////
-
-func (t *v_1) Fields() []sqlc.Field {
-	return []sqlc.Field{
-		
-		sqlc.String(V_1, "ID"),
-		
-		sqlc.String(V_1, "VERSION"),
-		
-		sqlc.Time(V_1, "_TSTAMP"),
-		
-		sqlc.Time(V_1, "TS_COL"),
-		
-		sqlc.String(V_1, "X"),
-		
-	}
-}
-
-
-
 
 var __repositories = &repositories{}
 var REPOSITORIES = &repositories {
@@ -545,25 +455,6 @@ var X = &x {
 	VERSION: sqlc.String(__x, "VERSION"),
 
 	TS: sqlc.Time(__x, "TS"),
-
-
-}
-
-
-
-var __v_1 = &v_1{}
-var V_1 = &v_1 {
-	
-
-	ID: sqlc.String(__v_1, "ID"),
-
-	VERSION: sqlc.String(__v_1, "VERSION"),
-
-	_TSTAMP: sqlc.Time(__v_1, "_TSTAMP"),
-
-	TS_COL: sqlc.Time(__v_1, "TS_COL"),
-
-	X: sqlc.String(__v_1, "X"),
 
 
 }

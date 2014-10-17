@@ -5,7 +5,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"os"
 	"testing"
-	"time"
+	//"time"
 )
 
 type VersionTestSuite struct {
@@ -29,10 +29,10 @@ func (s *VersionTestSuite) SetupTest() {
 
 func (s *VersionTestSuite) TestNewRepository() {
 
-	attributeName := "ts_col"
+	//attributeName := "ts_col"
 
 	parts := make(map[string]PartitionDescriptor)
-	parts[attributeName] = &RangePartitionDescriptor{}
+	//parts[attributeName] = &RangePartitionDescriptor{}
 	parts["x"] = &SetPartitionDescriptor{Values: []string{"y"}}
 
 	repo, err := s.store.NewRepository("some_src", "some_repo", parts)
@@ -46,7 +46,7 @@ func (s *VersionTestSuite) TestNewRepository() {
 	version := "v3"
 
 	atts := make(map[string]interface{})
-	atts[attributeName] = time.Now()
+	//atts[attributeName] = time.Now()
 	atts["x"] = "y"
 
 	ev := NewPartitionedEvent(id, version, atts)
@@ -63,6 +63,6 @@ func (s *VersionTestSuite) TestNewRepository() {
 	assert.Equal(s.T(), "43a03299a3c3fed3d8ce7b820f3aca81", digests[id])
 }
 
-// func (s *VersionTestSuite) TestVersionStoreSync() {
-// 	assert.Equal(s.T(), s.store.SliceThreshold(), 128)
-// }
+func (s *VersionTestSuite) TestVersionStoreSync() {
+	assert.Equal(s.T(), s.store.SliceThreshold(), 128)
+}

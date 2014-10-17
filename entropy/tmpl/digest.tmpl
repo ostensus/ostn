@@ -1,6 +1,0 @@
-SELECT 
-  id,
-  LOWER(HEX(MD5(GROUP_CONCAT(version,'')))) AS digest
-FROM v_{{ .Postfix }}
-GROUP BY id 
-ORDER BY id DESC;

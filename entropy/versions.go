@@ -20,7 +20,7 @@ type VersionStore struct {
 	dialect sqlc.Dialect
 }
 
-var repoTmpl, digestTmpl, upsertTmpl *template.Template
+var repoTmpl, upsertTmpl *template.Template
 
 func init() {
 	m := template.FuncMap{
@@ -29,9 +29,6 @@ func init() {
 
 	repoBin, _ := repo_tmpl()
 	repoTmpl = template.Must(template.New("repo.tmpl").Funcs(m).Parse(string(repoBin)))
-
-	digestBin, _ := digest_tmpl()
-	digestTmpl = template.Must(template.New("digest.tmpl").Funcs(m).Parse(string(digestBin)))
 
 	upsertBin, _ := upsert_tmpl()
 	upsertTmpl = template.Must(template.New("upsert.tmpl").Funcs(m).Parse(string(upsertBin)))
@@ -276,32 +273,12 @@ func (v *VersionStore) Digest(repo int64) (map[string]string, error) {
 	sliceThreshold := 127
 	bucket := sqlc.Count().Cast("REAL").Div(sliceThreshold).Cast("INT").As("bucket")
 
-	//day := lhs.TimeField("ts")
-
 	q := sqlc.Select(lhsIdField.As("id"), lhsVersion, bucket).
 		From(lhs).
 		Join(rhs).On(lhsIdField.IsGe(rhsIdField)).
 		GroupBy(lhsIdField)
 
-	s := q.String(v.dialect)
-	log.Infof("Digest %s", s)
-
-	_, err = q.Query(v.dialect, v.db)
-	if err != nil {
-		return nil, err
-	}
-
-	sql := renderSQL(repo, parts, digestTmpl)
-	log.Infof("Parts: %+v", parts)
-	log.Infof("Query: %s", sql)
-
-	st, err := v.db.Prepare(sql)
-	if err != nil {
-		return nil, err
-	}
-	defer st.Close()
-
-	rows, err = st.Query()
+	rows, err = q.Query(v.dialect, v.db)
 	if err != nil {
 		return nil, err
 	}
@@ -312,7 +289,8 @@ func (v *VersionStore) Digest(repo int64) (map[string]string, error) {
 	for rows.Next() {
 		var id string
 		var digest string
-		rows.Scan(&id, &digest)
+		var bucket int // currently not used for much
+		rows.Scan(&id, &digest, &bucket)
 		digests[id] = digest
 	}
 
